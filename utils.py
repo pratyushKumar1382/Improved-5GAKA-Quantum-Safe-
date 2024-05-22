@@ -7,7 +7,7 @@ import random
 
 host = "0.0.0.0"
 port = 9123
-BUFF_SIZE = 512000000
+BUFF_SIZE = 5120000
 
 
 def receive_list(client_socket):
@@ -22,25 +22,25 @@ def send_list(client_socket, data_list):
 
 
 def hash_function(lst):
-    ans = len(lst)
-    itr = 0
-    while itr < len(lst):
-        ans = ans ^ lst[itr] | itr
-        itr += 1
-    return ans
-    # # Convert the list to a string representation
-    # list_str = ''.join(str(elem) for elem in lst)
+    # ans = len(lst)
+    # itr = 0
+    # while itr < len(lst):
+    #     ans = ans ^ lst[itr] | itr
+    #     itr += 1
+    # return ans
+    # Convert the list to a string representation
+    list_str = ''.join(str(elem) for elem in lst)
 
-    # # Hash the string using SHA-512
-    # hash_object = hashlib.sha256(list_str.encode())
+    # Hash the string using SHA-512
+    hash_object = hashlib.sha256(list_str.encode())
 
-    # # Get the hexadecimal representation of the hash
-    # hex_dig = hash_object.hexdigest()
+    # Get the hexadecimal representation of the hash
+    hex_dig = hash_object.hexdigest()
 
-    # # Convert the hexadecimal hash to an integer
-    # hash_int = int(hex_dig, 16)
+    # Convert the hexadecimal hash to an integer
+    hash_int = int(hex_dig, 16)
 
-    # return hash_int
+    return hash_int
 
 
 def abort():
