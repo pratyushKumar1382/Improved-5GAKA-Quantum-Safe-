@@ -5,9 +5,9 @@ from ntru import NTRUKey, generate_key
 import hashlib
 import random
 
-host = "127.0.0.1"
-port = 8075
-BUFF_SIZE = 5120000000
+host = "0.0.0.0"
+port = 9123
+BUFF_SIZE = 512000000
 
 
 def receive_list(client_socket):
@@ -111,6 +111,11 @@ def serialize(msg):
     # print(lst)
     return poly(lst, len(lst))
 
+def serialize_poly(ply):
+    lst = []
+    for coeff in ply:
+        lst.append(coeff)
+    return lst
 
 # def send_message(msg, pk, keys):
 #     msg = serialize(msg)

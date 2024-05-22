@@ -3,7 +3,7 @@ from utils import *
 from ntru import NTRUKey, generate_key
 import pickle
 import time
-
+import sys 
 N = 5
 p = 3
 q = 2051
@@ -34,6 +34,22 @@ def main():
     client_socket, addr = server_socket.accept()
     print("Connection from {}".format(addr))
 
+    client_socket.sendall(pickle.dumps([1,2,3,4]))
+
+
+    # ****************** Generating NTRU keys and sharing public key(Server Side) ******************
+
+    keys = generate_key()
+    server_h = keys._h
+    print(server_h)
+    print(type(server_h))
+    print(sys.getsizeof(pickle.dumps(server_h)))
+    # print()
+    client_socket.sendall(pickle.dumps(server_h))
+    print("1")
+    client_pk = pickle.loads(client_socket.recv(BUFF_SIZE))
+
+
     # ****************** Registration Phase ******************
 
     r1 = get_random()
@@ -42,18 +58,9 @@ def main():
     B = A ^ r1 ^ HN.km
     K1 = hash_function([K, r1])
     # send (A, B, K1, f, n, Uid)
+    print(sys.getsizeof(pickle.dumps([A, B, K1, 0, 0, 234562345])))
     client_socket.sendall(pickle.dumps([A, B, K1, 0, 0, 234562345]))
     HN.add_client(234562345, K1, K, 0)
-
-    # ****************** Generating NTRU keys and sharing public key(Server Side) ******************
-
-    keys = generate_key()
-    server_h = keys._h
-
-    client_socket.sendall(pickle.dumps(server_h))
-    client_pk = pickle.loads(client_socket.recv(8192))
-
-
     # ****************** Phase 2 ******************
     # Recieves (A, B, F1, f, I, J) from client as msg
     # start_time = time.perf_counter()
