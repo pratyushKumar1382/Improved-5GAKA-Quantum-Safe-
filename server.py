@@ -53,17 +53,14 @@ def main():
     # ****************** Registration Phase ******************
 
     r1 = get_random()
-    print("r1", r1)
     K = get_random()
-    print("hello")
     A = 234562345 ^ hash_function([HN.km, r1])
     B = A ^ r1 ^ HN.km
     K1 = hash_function([K, r1])
-    print("K1 ",K1)
     # send (A, B, K1, f, n, Uid)
     # print(sys.getsizeof(pickle.dumps([A, B, K1, 0, 0, 234562345])))
     client_socket.sendall(pickle.dumps([A, B, K1, 0, 0, 234562345]))
-    print([A, B, K1, 0, 0, 234562345])
+    # print([A, B, K1, 0, 0, 234562345])
     HN.add_client(234562345, K1, K, 0)
 
 
@@ -74,12 +71,12 @@ def main():
     msg = pickle.loads(
         client_socket.recv(BUFF_SIZE)
     )  # recieves the encrypted polynomial sent through socket
-    print(msg)
+
     # msg = keys.decrypt(msg)  # decrypts the polynomial
     # msg = deserialize(
     #     msg
     # )  # deserializes msg to plain text from {-1, 0, 1}^(20*len(reply))
-    print(msg)
+    # print(msg)
 
     # msg[0] -> A
     # msg[1] -> B
@@ -89,19 +86,12 @@ def main():
     # msg[5] -> J
     # HN.registered_clients[id][0] -> K[], msg[3] -> f
     # ==> HN.registered_clients[id][0][msg[3]] = K[f]
-    print("I: ",msg[4])
-    print("r1", msg[0] ^ msg[1] ^ HN.km )
+
     id = msg[0] ^ hash_function([HN.km, msg[0] ^ msg[1] ^ HN.km])
-    print("K1 ", HN.registered_clients[id][0][msg[3]])
-    print("ytf",hash_function([HN.registered_clients[id][0][msg[3]], msg[0] ^ msg[1] ^ HN.km]))
     # r2 = msg[4] ^ hash_function(
     #     [hash_function([HN.registered_clients[id][0][msg[3]], msg[0] ^ msg[1] ^ HN.km])]
     # )
     r2 = msg[4] ^ hash_function([K1])
-    print("erg", hash_function(
-        [hash_function([HN.registered_clients[id][0][msg[3]], msg[0] ^ msg[1] ^ HN.km])]
-    ))
-    print("r2", r2)
     # n_ = msg[5] ^ hash_function(
     #     [
     #         hash_function(
@@ -113,7 +103,7 @@ def main():
     n_ = msg[5] ^ hash_function([K1, r2])
     print("id", id, r2, HN.registered_clients[id][1], n_)
     if HN.registered_clients[id][1] < n_:
-        abort("1")
+        abort()
     flag = 1
     for delta in range(HN.deln):
         F1_ = hash_function(
@@ -141,7 +131,6 @@ def main():
     K_new = get_random()
     A_new = id ^ hash_function([HN.km, r3])
     B_new = A_new ^ r3 ^ HN.km
-    print("Anew", A_new, B_new)
     k1_new = hash_function([K_new, r3])
     K_SEAF = hash_function(
         [
@@ -150,12 +139,6 @@ def main():
             HN.registered_clients[id][1] + 1,
         ]
     )
-    print("KSEAF ", K_SEAF)
-    print([
-            r2,
-            K1,
-            HN.registered_clients[id][1] + 1,
-        ])
 
     D1 = (
         k1_new
@@ -178,7 +161,7 @@ def main():
     client_socket.sendall(
         pickle.dumps(reply)
     )  
-    print(reply)
+    # print(reply)
     # end_time = time.perf_counter()
     # print("Time Taken in decryption: ", end_time - start_time, " s\n")
     print("Authentication Succesful")

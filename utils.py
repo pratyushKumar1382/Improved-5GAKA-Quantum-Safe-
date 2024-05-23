@@ -5,7 +5,7 @@ from ntru import NTRUKey, generate_key
 import hashlib
 import random
 
-host = "127.0.0.1"
+host = "0.0.0.0"
 port = 9132
 BUFF_SIZE = 5120000
 
@@ -43,7 +43,7 @@ def hash_function(lst):
     return hash_int
 
 
-def abort(str):
+def abort(str = ""):
     print("aborted", str)
     return 0
 
