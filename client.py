@@ -62,19 +62,23 @@ def main():
     
     # ****************** Generating NTRU and sharing public key(Client Side) ******************
 
-    server_pk = pickle.loads(client_socket.recv(8192))
+    # server_pk = pickle.loads(client_socket.recv(8192))
 
 
-    keys = generate_key()
-    client_h = keys._h
-    client_socket.sendall(pickle.dumps(client_h))
+    # keys = generate_key()
+    # client_h = keys._h
+    # client_socket.sendall(pickle.dumps(client_h))
     # # print(keys.get_h)
     # send(client_socket, client_h.coefficients())
 
     # ****************** Phase 1  (UE --(A, B, F1, f, I, J)--> HN) ******************
 
     r2 = get_random()
+    print(r2, mobile.id, "id")
+    print(mobile.K1, "k1")
     I = hash_function([mobile.K1]) ^ r2
+    print("I ", r2, mobile.K1)
+    print("I: ", I)
     J = mobile.n ^ hash_function([mobile.K1, r2])
     # F1 = H(Uid || H(K1) || f || r2 || n)
     F1 = hash_function([mobile.id, hash_function([mobile.K1]), mobile.f, r2, mobile.n])
@@ -84,10 +88,10 @@ def main():
     # print(reply)
 
     # Encrypting and sending (A, B, F1, f, I, J)
-    reply = serialize(
-        reply
-    )  # encodes reply into a polynomial of form {-1, 0, 1}^(20*len(reply))
-    reply = keys.encrypt(reply, server_pk)  # encrypts reply using server's public key
+    # reply = serialize(
+    #     reply
+    # )  # encodes reply into a polynomial of form {-1, 0, 1}^(20*len(reply))
+    # reply = keys.encrypt(reply, server_pk)  # encrypts reply using server's public key
     # print(reply)
     
     
@@ -106,19 +110,23 @@ def main():
     msg = pickle.loads(
         client_socket.recv(BUFF_SIZE)
     )  # recieves the encrypted polynomial sent through socket
-    msg = keys.decrypt(msg)  # decrypts the polynomial
+    # msg = keys.decrypt(msg)  # decrypts the polynomial
     
-    msg = deserialize(
-        msg
-    )  # deserializes msg to plain text from {-1, 0, 1}^(20*len(reply))
-
+    # msg = deserialize(
+    #     msg
+    # )  # deserializes msg to plain text from {-1, 0, 1}^(20*len(reply))
+    print(msg)
     k1_new = msg[0] ^ mobile.K1 ^ r2
     K_SEAF = hash_function([r2, mobile.K1, mobile.n + 1])
+    print([r2, mobile.K1, mobile.n + 1])
+    print("KSEAF ", K_SEAF)
     A_new = msg[1] ^ hash_function([k1_new, r2])
     B_new = msg[2] ^ hash_function([r2, k1_new])
+    print("Anew", A_new, B_new)
+
     F2_ = hash_function([K_SEAF, A_new, B_new])
     if msg[3] != F2_:
-        abort()
+        abort("")
 
     mobile.K1 = k1_new
     mobile.A = A_new
