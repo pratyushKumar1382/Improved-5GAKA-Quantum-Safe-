@@ -1,5 +1,5 @@
 import socket
-from utils import *
+from utils_client import *
 from ntru import NTRUKey, generate_key
 from poly import Polynomial as poly
 import pickle

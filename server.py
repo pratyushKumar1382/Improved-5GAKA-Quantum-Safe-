@@ -1,12 +1,9 @@
 import socket
-from utils import *
-from ntru import NTRUKey, generate_key
+from utils_server import *
 import pickle
 import time
 import sys 
-N = 5
-p = 3
-q = 2051
+
 
 
 class server:
@@ -51,22 +48,23 @@ def main():
 
 
     # ****************** Registration Phase ******************
-
+    print("\nRegistration phase\n")
     r1 = get_random()
     K = get_random()
     A = 234562345 ^ hash_function([HN.km, r1])
     B = A ^ r1 ^ HN.km
     K1 = hash_function([K, r1])
-    # send (A, B, K1, f, n, Uid)
     # print(sys.getsizeof(pickle.dumps([A, B, K1, 0, 0, 234562345])))
     client_socket.sendall(pickle.dumps([A, B, K1, 0, 0, 234562345]))
-    # print([A, B, K1, 0, 0, 234562345])
-    HN.add_client(234562345, K1, K, 0)
+    print("Msg sent by HN to UE [A, B, K1, f, n, UEid]")
+    print([A, B, K1, 0, 0, 234562345])
+    HN.add_client(234562345, K, K1, 0)
 
 
     # ****************** Phase 2 ******************
     # Recieves (A, B, F1, f, I, J) from client as msg
     # start_time = time.perf_counter()
+    print("\n Authentication Phase\n")
 
     msg = pickle.loads(
         client_socket.recv(BUFF_SIZE)
@@ -76,7 +74,9 @@ def main():
     # msg = deserialize(
     #     msg
     # )  # deserializes msg to plain text from {-1, 0, 1}^(20*len(reply))
-    # print(msg)
+    print("Message recieved from UE [A, B, F1, f, I, J]\n")
+    print(msg,"\n")
+
 
     # msg[0] -> A
     # msg[1] -> B
@@ -88,10 +88,14 @@ def main():
     # ==> HN.registered_clients[id][0][msg[3]] = K[f]
 
     id = msg[0] ^ hash_function([HN.km, msg[0] ^ msg[1] ^ HN.km])
+    hashed_value = hash_function([HN.registered_clients[id][0][msg[3]], msg[0] ^ msg[1] ^ HN.km])
+    # hashed_value -> H(K[f], A^B^km)
+
     # r2 = msg[4] ^ hash_function(
     #     [hash_function([HN.registered_clients[id][0][msg[3]], msg[0] ^ msg[1] ^ HN.km])]
     # )
-    r2 = msg[4] ^ hash_function([K1])
+    r2 = msg[4] ^ hash_function([hashed_value])
+
     # n_ = msg[5] ^ hash_function(
     #     [
     #         hash_function(
@@ -100,8 +104,9 @@ def main():
     #         r2,
     #     ]  # mistake
     # )
-    n_ = msg[5] ^ hash_function([K1, r2])
-    print("id", id, r2, HN.registered_clients[id][1], n_)
+    # print(hash_function([HN.registered_clients[id][0][msg[3]], msg[0] ^ msg[1] ^ HN.km]))
+    n_ = msg[5] ^ hash_function([hashed_value, r2])
+    # print("id", id, r2, HN.registered_clients[id][1], n_)
     if HN.registered_clients[id][1] < n_:
         abort()
     flag = 1
@@ -135,14 +140,14 @@ def main():
     K_SEAF = hash_function(
         [
             r2,
-            K1,
+            hashed_value,
             HN.registered_clients[id][1] + 1,
         ]
     )
-
+    print("Session Key: ", K_SEAF, "\n")
     D1 = (
         k1_new
-        ^ K1
+        ^ hashed_value
         ^ r2
     )
     D2 = A_new ^ hash_function([k1_new, r2])
@@ -161,7 +166,8 @@ def main():
     client_socket.sendall(
         pickle.dumps(reply)
     )  
-    # print(reply)
+    print("Msg sent by HN to UE [D1, D2, D3, F2]\n")
+    print(reply)
     # end_time = time.perf_counter()
     # print("Time Taken in decryption: ", end_time - start_time, " s\n")
     print("Authentication Succesful")
